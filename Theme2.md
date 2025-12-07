@@ -332,18 +332,18 @@ public class Main {
                 // Fermer la tournée actuelle (ajouter retour au dépôt)
                 currentTour.add(fullTour.get(0));
                 subTours.add(new Tournee(g, currentTour));
-                // Démarrer une nouvelle tournée
+                // On démarre une nouvelle tournée
                 currentTour.clear();
                 currentLoad = 0;
             }
             if (currentTour.isEmpty()) {
-                // Ajouter le dépôt en début de tournée
+                // On ajoute le dépôt en fin de tournée
                 currentTour.add(fullTour.get(0));
             }
             currentTour.add(v);
             currentLoad += v.capacity;
         }
-        // Clôturer la dernière tournée
+        // On cloture la derniere tournée
         if (!currentTour.isEmpty()) {
             currentTour.add(fullTour.get(0));
             subTours.add(new Tournee(g, currentTour));
