@@ -3,7 +3,7 @@ import java.util.*;
 // Classe représentant un sommet (point de collecte ou dépôt)
 class Sommet {
     String name;
-    int capacity; // contenance du point (quantité de déchets)
+    int capacity; // contenance du point (quantité de déchets)zaeazeae
 
     Sommet(String name, int capacity) {
         this.name = name;
