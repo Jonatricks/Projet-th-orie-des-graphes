@@ -1,0 +1,176 @@
+import java.util.*;
+
+public class Main {
+
+    // ---- Structure Graphe ----
+    static class Edge {
+        String u, v;
+        int w;
+
+        Edge(String u, String v, int w) {
+            this.u = u;
+            this.v = v;
+            this.w = w;
+        }
+
+        boolean matches(String a, String b) {
+            return (u.equals(a) && v.equals(b)) || (u.equals(b) && v.equals(a));
+        }
+    }
+
+    static class Graph {
+        Map<String, Map<String, Integer>> adj = new HashMap<>();
+
+        void addEdge(String a, String b, int w) {
+            adj.putIfAbsent(a, new HashMap<>());
+            adj.putIfAbsent(b, new HashMap<>());
+            adj.get(a).put(b, w);
+            adj.get(b).put(a, w);
+        }
+
+        int dijkstra(String start, String target, Set<String> blockedEdges, List<String> shortestPath) {
+            Map<String, Integer> dist = new HashMap<>();
+            Map<String, String> parent = new HashMap<>();
+            PriorityQueue<String> pq = new PriorityQueue<>(Comparator.comparingInt(dist::get));
+
+            for (String v : adj.keySet()) dist.put(v, Integer.MAX_VALUE);
+            dist.put(start, 0);
+            pq.add(start);
+
+            while (!pq.isEmpty()) {
+                String u = pq.poll();
+                if (u.equals(target)) break;
+
+                for (String v : adj.get(u).keySet()) {
+                    String key1 = u + "-" + v;
+                    String key2 = v + "-" + u;
+
+                    if (blockedEdges.contains(key1) || blockedEdges.contains(key2))
+                        continue;
+
+                    int nd = dist.get(u) + adj.get(u).get(v);
+
+                    if (nd < dist.get(v)) {
+                        dist.put(v, nd);
+                        parent.put(v, u);
+                        pq.add(v);
+                    }
+                }
+            }
+
+            // Reconstruction du chemin
+            shortestPath.clear();
+            String cur = target;
+            while (cur != null) {
+                shortestPath.add(cur);
+                cur = parent.get(cur);
+            }
+            Collections.reverse(shortestPath);
+
+            return dist.get(target);
+        }
+
+
+        String closest(String from, Set<String> toVisit, Set<String> blocked) {
+            String best = null;
+            int bestDist = Integer.MAX_VALUE;
+
+            for (String t : toVisit) {
+                int d = dijkstra(from, t, blocked, new ArrayList<>());
+                if (d < bestDist) {
+                    bestDist = d;
+                    best = t;
+                }
+            }
+            return best;
+        }
+    }
+
+
+    // ---------------------- MAIN ----------------------
+    public static void main(String[] args) {
+
+        Graph g = new Graph();
+
+        // ---- Ajout du graphe EXACT ----
+        g.addEdge("B","D",120);
+        g.addEdge("B","C",230);
+        g.addEdge("B","A",170);
+        g.addEdge("C","D",90);
+        g.addEdge("C","E",300);
+        g.addEdge("C","F",510);
+        g.addEdge("C","I",300);
+        g.addEdge("A","C",210);
+        g.addEdge("A","L",400);
+        g.addEdge("D","E",850);
+        g.addEdge("E","F",110);
+        g.addEdge("F","G",280);
+        g.addEdge("G","H",600);
+        g.addEdge("G","J",390);
+        g.addEdge("J","H",340);
+        g.addEdge("L","H",650);
+        g.addEdge("L","J",500);
+        g.addEdge("L","K",200);
+        g.addEdge("K","I",320);
+        g.addEdge("I","J",150);
+        g.addEdge("F","I",270);
+
+        Set<String> toVisit = new HashSet<>(Arrays.asList("D","C","K","I","J","F"));
+        String start = "B";
+
+        String current = start;
+        int totalDistance = 0;
+        Set<String> blockedEdges = new HashSet<>();
+
+        List<String> finalPath = new ArrayList<>();
+        finalPath.add("B");
+
+        while (!toVisit.isEmpty()) {
+
+            String next = g.closest(current, toVisit, blockedEdges);
+
+            List<String> shortest = new ArrayList<>();
+            int dist = g.dijkstra(current, next, blockedEdges, shortest);
+
+            // Afficher chaque segment du chemin
+            for (int i = 0; i < shortest.size() - 1; i++) {
+                String u = shortest.get(i);
+                String v = shortest.get(i + 1);
+                int w = g.adj.get(u).get(v);
+
+                System.out.println(u + " → " + v + " : " + w);
+            }
+
+            totalDistance += dist;
+
+            // bloquer l'arête directe
+            blockedEdges.add(current + "-" + next);
+            blockedEdges.add(next + "-" + current);
+
+            finalPath.add(next);
+            toVisit.remove(next);
+            current = next;
+        }
+
+
+        // ---- RETOUR À B ----
+        List<String> shortestBack = new ArrayList<>();
+        int back = g.dijkstra(current, start, blockedEdges, shortestBack);
+
+        for (int i = 0; i < shortestBack.size() - 1; i++) {
+            String u = shortestBack.get(i);
+            String v = shortestBack.get(i + 1);
+            int w = g.adj.get(u).get(v);
+
+            System.out.println(u + " → " + v + " : " + w); 
+        }
+
+        totalDistance += back;
+        finalPath.add("B");
+
+        // Résultats
+        System.out.println("\nTournée complète : " + finalPath);
+        System.out.println("Distance totale = " + totalDistance + " mètres");
+    }
+}
+.
